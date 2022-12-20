@@ -1,3 +1,3 @@
-module github.com/bjaus/grr
+module github.com/bjaus/sos
 
 go 1.17
