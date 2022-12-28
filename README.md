@@ -1,3 +1,6 @@
-# SOS (...---...)
+## ...---...
+#### (SOS in Morse Code)
 
-[article](https://www.mentalfloss.com/article/31911/what-does-sos-stand)
+This package provides a Go error handling framework inspired by the following articles:
+- [Failure is Your Domain](https://middlemost.com/failure-is-your-domain/)
+- [Error Handling in Upspin](https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html)
