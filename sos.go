@@ -1,6 +1,9 @@
 package sos
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Error ...
 type Error interface {
@@ -41,22 +44,6 @@ func Trace(err error) error {
 	return create(INTERNAL, err.Error(), err)
 }
 
-func create(code Code, msg string, err error) *Err {
-	e := Err{
-		code:    code,
-		message: msg,
-		reason:  string(code),
-		op:      opParser(2),
-		detail:  make(map[string]string),
-	}
-
-	if err != nil {
-		e.err = err
-	}
-
-	return &e
-}
-
 // Is indicates whether the error provided implements the Error interface.
 func Is(err error) bool {
 	var i Error
@@ -73,6 +60,19 @@ func As(err error) *Err {
 	return nil
 }
 
+// Must acts similiar to the As function but will panic if the error does
+// not satisfy the Error interface.
+//
+// This is handy for instances where you know the error is already the
+// proper error type and want to quickly access the builder methods
+// to make changes to the state of the error.
+func Must(err error) *Err {
+	if e := As(err); e != nil {
+		return e
+	}
+	panic(fmt.Errorf("invalid error type: %v", err))
+}
+
 // Kind extracts the Code from the error provided if it satisfies the Error interface.
 //
 // If the error does not satisfy the Error interface or is nil then an empty Code value is returned..
@@ -83,4 +83,17 @@ func Kind(err error) Code {
 		}
 	}
 	return ""
+}
+
+func create(code Code, msg string, err error) *Err {
+	e := Err{
+		code:    code,
+		message: msg,
+		reason:  string(code),
+		op:      opParser(2),
+		detail:  make(map[string]string),
+		err:     err,
+	}
+
+	return &e
 }

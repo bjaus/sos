@@ -48,6 +48,9 @@ func (o op) Line() int {
 }
 
 func (o op) String() string {
+	if o.file == "" {
+		return ""
+	}
 	return fmt.Sprintf("%s:%d", o.file, o.line)
 }
 
@@ -58,48 +61,45 @@ var opReplacer = *strings.NewReplacer(
 )
 
 func opParser(skip int) *op {
-	o := op{
-		pkg:  "unknown",
-		fn:   "unknown",
-		file: "unknown",
-		line: -1,
-	}
-
 	if skip < 0 {
 		skip = 0
 	}
-	skip++
+	skip++ // Add one to skip this func.
 
 	pc, file, line, ok := runtime.Caller(skip)
 	if !ok {
-		return &o
+		return nil
 	}
 
 	f := runtime.FuncForPC(pc)
 	parts := strings.Split(f.Name(), "/")
 
 	if len(parts) == 0 {
-		return &o
+		return nil
 	}
 
+	// Clean up some of the cruft provided by the runtime package.
 	caller := opReplacer.Replace(parts[len(parts)-1])
 	parts = strings.Split(caller, ".func")
-
 	caller = parts[0]
 	parts = strings.Split(caller, ".")
 
+	var pkg, fn string
+
 	switch len(parts) {
 	case 0:
-		return &o
+		return nil
 	case 2:
-		o.fn = strings.Join(parts[1:], ".")
+		fn = strings.Join(parts[1:], ".")
 		fallthrough
 	default:
-		o.pkg = parts[0]
+		pkg = parts[0]
 	}
 
-	o.file = file
-	o.line = line
-
-	return &o
+	return &op{
+		pkg:  pkg,
+		fn:   fn,
+		file: file,
+		line: line,
+	}
 }

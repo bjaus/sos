@@ -65,6 +65,9 @@ func (e *Err) WithCode(code Code) *Err {
 
 // WithError adds an error value to the error chain.
 func (e *Err) WithError(err error) *Err {
+	if v := As(err); v != nil {
+		return e.propagate(v.err)
+	}
 	return e.propagate(err)
 }
 
@@ -112,13 +115,9 @@ func (e *Err) propagate(args ...interface{}) *Err {
 		p, ok := e.err.(*Err)
 		if ok {
 
-			if p.detail != nil {
-				e.detail = p.detail
-			} else {
-				for k, v := range p.detail {
-					if _, ok := e.detail[k]; !ok {
-						e.detail[k] = v
-					}
+			for k, v := range p.detail {
+				if _, ok := e.detail[k]; !ok {
+					e.detail[k] = v
 				}
 			}
 

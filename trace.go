@@ -17,6 +17,9 @@ func trace(e *Err) string {
 
 	for w != nil {
 		if x := new(Err); errors.As(w, &x) {
+			if x.op == nil {
+				continue
+			}
 			t.add(x.message, x.code, x.op)
 		} else {
 			t.origin(w)
@@ -46,6 +49,10 @@ func (t *tracer) add(m string, code Code, op Op) {
 	}
 	if t.m == nil {
 		t.m = make(map[string][]string)
+	}
+
+	if op == nil {
+		return
 	}
 
 	// Create the message key.
@@ -83,8 +90,8 @@ func (t *tracer) String() string {
 		msg := t.k[i]
 		fmt.Fprint(&b, msg)
 
-		for i := len(t.m[msg]) - 1; i >= 0; i-- {
-			path := t.m[msg][i]
+		for j := len(t.m[msg]) - 1; j >= 0; j-- {
+			path := t.m[msg][j]
 			fmt.Fprintf(&b, "\n\t%s", path)
 		}
 
